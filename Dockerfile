@@ -22,7 +22,11 @@ WORKDIR /app
 RUN sed -i '/extra-index-url/d; s/^bpy==4.0$/bpy==4.2.0/' requirements.txt \
     && pip install --ignore-installed blinker && pip install -r requirements.txt
 RUN cd hy3dpaint/custom_rasterizer && pip install --no-build-isolation .
-RUN cd hy3dpaint/DifferentiableRenderer && bash compile_mesh_painter.sh
+# The upstream script names the module with `python3-config --extension-suffix`, which here answers for the wrong Python,
+# so Python 3.11 could not import it (texturing failed with "meshVerticeInpaint is not defined"). Use 3.11's suffix
+# and fail the build if the module still does not import.
+RUN cd hy3dpaint/DifferentiableRenderer && sed -i 's/python3-config/python3.11-config/' compile_mesh_painter.sh \
+    && bash compile_mesh_painter.sh && python -c "from mesh_inpaint_processor import meshVerticeInpaint; print('mesh inpaint OK')"
 RUN wget -q https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P hy3dpaint/ckpt
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
