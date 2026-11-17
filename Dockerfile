@@ -12,7 +12,8 @@ RUN pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.py
 RUN git clone --depth 1 https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1.git /app && rm -rf /app/.git
 WORKDIR /app
 # the upstream requirements list two China-hosted mirrors that are very slow elsewhere
-RUN sed -i '/extra-index-url/d' requirements.txt && pip install -r requirements.txt
+# bpy==4.0 (Python 3.10 only) is no longer on PyPI: use Blender 4.2 LTS, the closest release for Python 3.11
+RUN sed -i '/extra-index-url/d; s/^bpy==4.0$/bpy==4.2.0/' requirements.txt && pip install -r requirements.txt
 RUN cd hy3dpaint/custom_rasterizer && pip install --no-build-isolation .
 RUN cd hy3dpaint/DifferentiableRenderer && bash compile_mesh_painter.sh
 RUN wget -q https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P hy3dpaint/ckpt
