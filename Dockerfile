@@ -18,7 +18,9 @@ RUN git clone --depth 1 https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1.git /ap
 WORKDIR /app
 # The upstream requirements list two China-hosted mirrors (very slow elsewhere) and bpy==4.0 (gone from PyPI):
 # drop the mirrors and use Blender 4.2 LTS, the closest bpy release for Python 3.11.
-RUN sed -i '/extra-index-url/d; s/^bpy==4.0$/bpy==4.2.0/' requirements.txt && pip install -r requirements.txt
+# Ubuntu ships blinker 1.4 via distutils, which pip cannot uninstall: install a fresh copy over it first.
+RUN sed -i '/extra-index-url/d; s/^bpy==4.0$/bpy==4.2.0/' requirements.txt \
+    && pip install --ignore-installed blinker && pip install -r requirements.txt
 RUN cd hy3dpaint/custom_rasterizer && pip install --no-build-isolation .
 RUN cd hy3dpaint/DifferentiableRenderer && bash compile_mesh_painter.sh
 RUN wget -q https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth -P hy3dpaint/ckpt
